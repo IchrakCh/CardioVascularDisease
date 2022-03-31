@@ -1,0 +1,11 @@
+fastapi[all]
+pandas
+numpy
+matplotlib
+sklearn
+scikit-learn
+jupyter
+jupyterlab 
+scipy
+h5py
+mlflow
