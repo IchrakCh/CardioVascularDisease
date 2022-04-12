@@ -1,12 +1,17 @@
-# import joblib #to save the model (not like pickel)
-#from ctypes.wintypes import BOOLEAN
 import re
 from xmlrpc.client import boolean 
-from fastapi import FastAPI 
+from fastapi import FastAPI
+from matplotlib.cbook import ls_mapper 
 from pydantic import BaseModel
 from typing import Optional
 import csv
 import pickle
+
+import sys
+sys.path.append('../model')
+
+from model import train, predict
+
 
 class Features(BaseModel):
     # Objective Features 
@@ -26,19 +31,28 @@ class Features(BaseModel):
     alco : bool
     active : bool
     # Target Variable
-    cardio : bool
+    #cardio : bool
     
+# Fonctions utiles pour traitement des données 
+def setId(filename,input):
+    with open(filename, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+        all_lines = list(reader)
+        newId = int(all_lines[-1][0])+1
+        csvfile.close()
+    return newId
+
+def addToCsv(filename, input):
+    inputRow = input.insert(0,setId(filename, input))
+    with open(filename, 'a', newline='') as f:
+        reader = csv.reader(csvfile, delimiter=';')
+        all_lines = list(reader)
+        newId = int(all_lines[-1][0])+1
+        writer_object = csv.writer(f)
+        writer_object.writerow(inputRow)
+        f.close()
+
 app = FastAPI()
-
-#filename_Model= "../model/"
-#loaded_model = pickle.load(open(filename_Model,'rb'))
-
-# def prediction_combi(combi):
-#     label = loaded_model.predict([combi])[0]
-#     combi_proba = loaded_model.predict_proba([combi])
-
-#     return {'label': label, 'winning_proba':combi_proba[0][1]}
-
 
 @app.get('/')
 
@@ -49,32 +63,39 @@ async def home():
 @app.put('/api/dataset/improve')
 
 async def addExamination(features: Features):
+    
     result = {**features.dict()}
+    print(type(result))
+    input = list(result.values())
+    print(type(input), len(input))
     # add informations into the dataset !
-    return result
+    addToCsv("../data/cardio_train.csv",input)
 
 # Retraining the ML model using the new lines added to it 
 @app.post('/api/model/retrain')
 
 async def retrain():
-    #retrain the model and pickel it (delete the old one)
-    return "model retrained"
+    train("../data/cardio_train.csv")
+    return {"message" : "Model Trained succesfully"}
 
 
 # Get prediction from the model 
 @app.get('/api/model/predict')
 
 async def getprediction(features: Features):
-    return "prediction"
+
+    return predict(features)
 
 # Get metrics from the model 
 @app.get('/api/model/metrics')
 
-async def getMetrics(features: Features):
-    return "metrics"
+async def getMetrics():
+    name, metrics = train("../data/cardio_train.csv")
+    return metrics
 
 # Get the pickel of the model for other uses 
 @app.get('/api/model')
 
-async def getModel(features: Features):
-    return "model"
+async def getModel():
+    name, metrics = train("../data/cardio_train.csv")
+    return name
