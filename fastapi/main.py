@@ -6,7 +6,10 @@ from pydantic import BaseModel
 from typing import Optional
 import csv
 import pickle
+from sklearn import metrics
 
+from starlette.responses import FileResponse
+from os.path import exists
 import sys
 sys.path.append('../model')
 
@@ -69,33 +72,41 @@ async def addExamination(features: Features):
     input = list(result.values())
     print(type(input), len(input))
     # add informations into the dataset !
-    addToCsv("../data/cardio_train.csv",input)
+    #addToCsv("../data/cardio_train.csv",input)
 
 # Retraining the ML model using the new lines added to it 
 @app.post('/api/model/retrain')
 
 async def retrain():
-    train("../data/cardio_train.csv")
+    name, accuracy, metrics= train("../data/cardio_train.csv")
+    print(name, accuracy)
+    print(metrics["0"])
     return {"message" : "Model Trained succesfully"}
 
 
 # Get prediction from the model 
-@app.get('/api/model/predict')
+@app.put('/api/model/predict')
 
 async def getprediction(features: Features):
-
-    return predict(features)
+    result = {**features.dict()}
+    input = list(result.values())
+    print(len(input))
+    return input
 
 # Get metrics from the model 
 @app.get('/api/model/metrics')
 
 async def getMetrics():
-    name, metrics = train("../data/cardio_train.csv")
-    return metrics
+    nameModel, accuracy,  metrics = train("../data/cardio_train.csv")
+    return nameModel, accuracy, metrics["0"]
 
 # Get the pickel of the model for other uses 
 @app.get('/api/model')
 
 async def getModel():
-    name, metrics = train("../data/cardio_train.csv")
-    return name
+    file_location = "../model/saved_model.pickle"
+    if exists(file_location):
+        return FileResponse(path = file_location,filename="saved_model.pickle")
+    else: 
+        name, metrics = train("../data/cardio_train.csv")
+        return FileResponse(path = file_location,filename="saved_model.pickle")

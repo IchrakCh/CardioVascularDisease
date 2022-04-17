@@ -51,10 +51,7 @@ def train(filename):
     print(X.shape)
     print(y.shape)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    print(X_train.shape)
-    print(X_test.shape)
-    print(y_train.shape)
-    print(y_test.shape)
+
 
     #Choose the model with the best accuracy 
 
@@ -65,11 +62,9 @@ def train(filename):
 
     for name, classifier in zip(names, classifiers):
         classifier.fit(X_train, y_train)
-        score = classifier.score(X_test, y_test)
-        print(name, score)
+        #score = classifier.score(X_test, y_test)
+        #print(name, score)
         y_pred = classifier.predict(X_test)
-        #print(classification_report(y_test,y_pred))
-        print('Accuracy: {} %'.format(100*accuracy_score(y_test, y_pred)))
         infoModel['classifier'] = classifier
         infoModel['Accuracy']= format(100*accuracy_score(y_test, y_pred))
         models.append(infoModel.copy())
@@ -79,27 +74,64 @@ def train(filename):
         if max(accuracies) == dict["Accuracy"]:
             chosenModel = dict["classifier"]
     
-    
-    
-    #Retrain the model 
+    #Retrain the chosen model 
     chosenModel.fit(X_train, y_train)
     y_pred = chosenModel.predict(X_test)
 
     #Save the model with pickle 
-    filenameModel= "../model/saved_model.sav"
+    filenameModel= "../model/saved_model.pickle"
     pickle.dump(chosenModel, open(filenameModel, 'wb'))
 
-    nameModel = chosenModel
-    print(nameModel)
-    print(type(nameModel))
-    metrics = classification_report(y_test,y_pred)
+    #Return metrics of the chosen model 
+    nameModel = "Name : " + str(chosenModel)
+    accuracy = "Accuracy : " +format(100*accuracy_score(y_test, y_pred))
+    metrics = classification_report(y_test,y_pred, output_dict = True)
 
-    return nameModel, metrics
+    return nameModel, accuracy, metrics 
+
+trainingResult = train("../data/cardio_train.csv")
 
 def predict(input):
-    loaded_model = pickle.load(open("../model/saved_model.sav", 'rb'))
+    loaded_model = pickle.load(open("../model/saved_model.pickle", 'rb'))
     result = loaded_model.predict(input)
     if (result == 1):
-        print("You have a risk of a cardio vascular disease")
+        return "You have a risk of a cardio vascular disease"
     else:
-        print("You're okay for now but stay safe")
+        return "You're okay for now but stay safe"
+
+
+result = {
+  "age": 33,
+  "height": 167,
+  "weight": 67,
+  "gender": 2,
+  "ap_hi": 44,
+  "ap_lo": 55,
+  "cholestrol": 56,
+  "gluc": 45,
+  "smoke": True,
+  "alco": True,
+  "active": True
+}
+
+
+
+def setId(filename):
+    with open(filename, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+        all_lines = list(reader)
+        newId = int(all_lines[-1][0])+1
+        csvfile.close()
+    return newId
+
+input = []
+input.insert(0,setId("../data/cardio_train.csv"))
+listResult = list(result.values())
+for value in listResult :
+  input.append(value)
+print(input)
+
+Xnew = []
+Xnew.append(input)
+XnewArray = np.array(Xnew)
+print(predict(XnewArray))
