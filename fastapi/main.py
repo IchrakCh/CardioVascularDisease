@@ -29,15 +29,15 @@ class Features(BaseModel):
     cholestrol : int
     gluc : int
     # Sujbective Features 
-    smoke : bool
-    alco : bool
-    active : bool
+    smoke : int
+    alco : int
+    active : int
     # Target Variable
     #cardio : bool
     
 # Fonctions utiles pour rajouter les données au csv 
 def setId(filename):
-    with open(filename, 'r', newline='') as f:
+    with open(filename, 'r') as f:
         CSVreader = csv.reader(f, delimiter=';')
         all_lines = list(CSVreader)
         newId = float(all_lines[-1][0])+1
@@ -56,8 +56,10 @@ app = FastAPI()
 async def home():
     file_location = "../model/saved_model.pickle"
     if exists(file_location):
-        result = name, metrics = train("../data/cardio_train.csv")
-    return {"message" : "CardioVascular Disease Detection API"}
+        return {"message" : "CardioVascular Disease Detection API"}
+    else:
+        train("../data/cardio_train.csv")
+        return {"message" : "CardioVascular Disease Detection API / Machine Learning Model trained"}
 
 # Improving the dataset by adding a new line to it 
 @app.put('/api/dataset/improve')

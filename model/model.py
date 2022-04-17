@@ -53,8 +53,6 @@ def train(filename):
 
     for name, classifier in zip(names, classifiers):
         classifier.fit(X_train, y_train)
-        #score = classifier.score(X_test, y_test)
-        #print(name, score)
         y_pred = classifier.predict(X_test)
         infoModel['classifier'] = classifier
         infoModel['Accuracy']= format(100*accuracy_score(y_test, y_pred))
