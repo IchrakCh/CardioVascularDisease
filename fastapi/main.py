@@ -5,10 +5,9 @@ from matplotlib.cbook import ls_mapper
 from pydantic import BaseModel
 import numpy as np
 import csv
-
-
 from starlette.responses import FileResponse
 from os.path import exists
+
 import sys
 sys.path.append('../model')
 
@@ -55,6 +54,9 @@ app = FastAPI()
 @app.get('/')
 
 async def home():
+    file_location = "../model/saved_model.pickle"
+    if exists(file_location):
+        result = name, metrics = train("../data/cardio_train.csv")
     return {"message" : "CardioVascular Disease Detection API"}
 
 # Improving the dataset by adding a new line to it 
@@ -124,5 +126,5 @@ async def getModel():
     if exists(file_location):
         return FileResponse(path = file_location,filename="saved_model.pickle")
     else: 
-        name, metrics = train("../data/cardio_train.csv")
+        result = train("../data/cardio_train.csv")
         return FileResponse(path = file_location,filename="saved_model.pickle")
