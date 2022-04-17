@@ -5,23 +5,16 @@ from matplotlib.colors import ListedColormap
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import make_moons, make_circles, make_classification
-from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.metrics import classification_report, accuracy_score
-from sklearn import preprocessing
-from sklearn import metrics
 import pickle
-import random
-import csv
 
-filename = "../data/cardio_train.csv"
+
 
 names = [
     "Nearest Neighbors",
@@ -89,49 +82,10 @@ def train(filename):
 
     return nameModel, accuracy, metrics 
 
-trainingResult = train("../data/cardio_train.csv")
-
 def predict(input):
     loaded_model = pickle.load(open("../model/saved_model.pickle", 'rb'))
     result = loaded_model.predict(input)
     if (result == 1):
-        return "You have a risk of a cardio vascular disease"
+        return 1,"You have a risk of a cardio vascular disease"
     else:
-        return "You're okay for now but stay safe"
-
-
-result = {
-  "age": 33,
-  "height": 167,
-  "weight": 67,
-  "gender": 2,
-  "ap_hi": 44,
-  "ap_lo": 55,
-  "cholestrol": 56,
-  "gluc": 45,
-  "smoke": True,
-  "alco": True,
-  "active": True
-}
-
-
-
-def setId(filename):
-    with open(filename, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=';')
-        all_lines = list(reader)
-        newId = int(all_lines[-1][0])+1
-        csvfile.close()
-    return newId
-
-input = []
-input.insert(0,setId("../data/cardio_train.csv"))
-listResult = list(result.values())
-for value in listResult :
-  input.append(value)
-print(input)
-
-Xnew = []
-Xnew.append(input)
-XnewArray = np.array(Xnew)
-print(predict(XnewArray))
+        return 0, "You're okay for now but stay safe"
