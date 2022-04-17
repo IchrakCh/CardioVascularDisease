@@ -3,11 +3,9 @@ from xmlrpc.client import boolean
 from fastapi import FastAPI
 from matplotlib.cbook import ls_mapper 
 from pydantic import BaseModel
-from typing import Optional
 import numpy as np
 import csv
-import pickle
-from sklearn import metrics
+
 
 from starlette.responses import FileResponse
 from os.path import exists
@@ -40,12 +38,12 @@ class Features(BaseModel):
     
 # Fonctions utiles pour rajouter les données au csv 
 def setId(filename):
-    with open(filename, 'r', newline= '') as f:
-        reader = csv.reader(f, delimiter=';')
-        all_lines = list(reader)
-        newId = int(all_lines[-1][0])+1
+    with open(filename, 'r', newline='') as f:
+        CSVreader = csv.reader(f, delimiter=';')
+        all_lines = list(CSVreader)
+        newId = float(all_lines[-1][0])+1
         f.close()
-    return newId
+    return int(newId)
 
 def addToCsv(filename, input):
     with open(filename, 'a', newline='') as f:
@@ -108,7 +106,6 @@ async def getprediction(features: Features):
     XnewArray = np.array(Xnew)
     resultPrediction = predict(XnewArray)
     input.append(resultPrediction[0])
-    print(input)
     addToCsv("../data/cardio_train.csv",input)
     return resultPrediction[1]
 
